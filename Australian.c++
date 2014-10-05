@@ -104,8 +104,6 @@ void process_ballots(std::istream& r, int candidates)
         int pick = ballot->votes[0] + 1;
         currentCandidates[pick]->ballots.push_back(ballot);
     }
-
-    p
 }
 
 void find_next_candidate(Ballot* ballot)
