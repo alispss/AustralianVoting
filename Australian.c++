@@ -54,9 +54,9 @@ int process_candidates(std::istream& r)
     r.get(); //Throw away newline after int
     //cout << "num cadidates: " << i << endl;
     if (!r) return 0;
-    for(int j; j < i; j++)
+    for(int j = 0; j < i; j++)
     {
-        //cout << "candidate" << i << endl;
+        //cout << "candidate" << j << endl;
         //Create the Candidate object
         Candidate* candidate = new Candidate();
         
@@ -73,8 +73,9 @@ int process_candidates(std::istream& r)
         //Add the candidate to the list of candidates
         currentCandidates.push_back(candidate);
 
-        //cout << candidate->name << " " << candidate->candidateNo << endl;
+        //cout << "Candidate: " << candidate->name << " " << candidate->candidateNo << endl;
     }
+    cout << "end " << endl;
     return i;
 }
 
@@ -94,15 +95,16 @@ void process_ballots(std::istream& r, int candidates)
             int k;
             r >> k;
             ballot->votes.push_back(k);
-            cout << k << " ";
+            //cout << k << " ";
         }
-        //cout << currentCandidates[pick]->name << endl;
+        
         r.get(); // Throw out last newline after last int
 
         //Add this ballot to the list of the Candidate that is their first choice.
         //We have to add one because the array starts at 0.
-        int pick = ballot->votes[0] + 1;
+        int pick = ballot->votes[0] - 1;
         currentCandidates[pick]->ballots.push_back(ballot);
+        //cout << currentCandidates[pick]->name << endl;
     }
 }
 
