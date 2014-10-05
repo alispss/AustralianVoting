@@ -9,6 +9,8 @@
 #include <vector> // vector
 #include <list> // list
 
+using namespace std;
+
 //I wrote this whole thing without testing it.
 
 //God help us.
@@ -46,16 +48,23 @@ unsigned int numVotes;
 //This function processes the input from the istream and creates the Candidate objects
 int process_candidates(std::istream& r)
 {
+    //cout << "process_candidates" << endl;
     int i;
     r >> i;
+    r.get(); //Throw away newline after int
+    //cout << "num cadidates: " << i << endl;
     if (!r) return 0;
     for(int j; j < i; j++)
     {
+        //cout << "candidate" << i << endl;
         //Create the Candidate object
         Candidate* candidate = new Candidate();
         
         //Read the candidates name from the istream
-        getline(r, candidate->name);
+        //Changing reads to istream reads so that info doesn't have to be immediately ready and I can test on the console
+        char name[81];
+        r.getline(name, 80);
+        candidate->name = name;
         
         //This stores the candidate's position in the vector. This lets us remove
         //candidates that have lost the election.
@@ -63,6 +72,8 @@ int process_candidates(std::istream& r)
         
         //Add the candidate to the list of candidates
         currentCandidates.push_back(candidate);
+
+        //cout << candidate->name << " " << candidate->candidateNo << endl;
     }
     return i;
 }
@@ -70,8 +81,9 @@ int process_candidates(std::istream& r)
 //This function processes the input from the istream and creates the Ballot objects
 void process_ballots(std::istream& r, int candidates)
 {
+    //cout << "process_ballots" << endl;
     numVotes = 0;
-    while(r.peek() != '\n')
+    while(r && r.peek() != '\n')
     {
         ++numVotes;
         Ballot* ballot = new Ballot();
@@ -82,13 +94,18 @@ void process_ballots(std::istream& r, int candidates)
             int k;
             r >> k;
             ballot->votes.push_back(k);
+            cout << k << " ";
         }
-        
+        //cout << currentCandidates[pick]->name << endl;
+        r.get(); // Throw out last newline after last int
+
         //Add this ballot to the list of the Candidate that is their first choice.
         //We have to add one because the array starts at 0.
         int pick = ballot->votes[0] + 1;
         currentCandidates[pick]->ballots.push_back(ballot);
     }
+
+    p
 }
 
 void find_next_candidate(Ballot* ballot)
@@ -199,17 +216,20 @@ void Australian_solve(std::istream& r, std::ostream& w)
     for(int i = 0; i < numElections; i++)
     {
        std::string s;
-       std::getline(r, s); //We want to ignore the blank line that happens after each election and after the number of elections
-       
+       //We want to ignore the two newlines
+       r.get();
+       r.get();
+
        int numCandidates = process_candidates(r);
        process_ballots(r, numCandidates);
        
-       process_election(numCandidates);
+       //process_election(numCandidates);
     }
 }
 
 //TODO: Make this actually call the function so we can, you know, try it.
 int main()
 {
-    return 1;
+    Australian_solve(cin, cout);
+    return 0;
 }
