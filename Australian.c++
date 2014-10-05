@@ -75,7 +75,7 @@ int process_candidates(std::istream& r)
 
         //cout << "Candidate: " << candidate->name << " " << candidate->candidateNo << endl;
     }
-    cout << "end " << endl;
+    //cout << "end " << endl;
     return i;
 }
 
@@ -97,25 +97,27 @@ void process_ballots(std::istream& r, int candidates)
             ballot->votes.push_back(k);
             //cout << k << " ";
         }
-        
-        r.get(); // Throw out last newline after last int
 
         //Add this ballot to the list of the Candidate that is their first choice.
         //We have to add one because the array starts at 0.
         int pick = ballot->votes[0] - 1;
         currentCandidates[pick]->ballots.push_back(ballot);
         //cout << currentCandidates[pick]->name << endl;
+        
+        r.get();
     }
+    //cout << numVotes << endl;
 }
 
 void find_next_candidate(Ballot* ballot)
 {
+    //cout << "find_next_candidate" << endl;
     //This line is sort of convoluted. Here's what it's doing:
     //1.Get the current vote "index" (where they are in their list of choices
     //2.Check their list of votes and get the array position of that candidate
     //3.Check if that candidate is still in the race (that is, their pointer != 0)
     //If the pointer is null, repeat. If not, drop out of the loop.
-    while(currentCandidates[ballot->votes[ballot->index] - 1] == 0 && (ballot->index < ballot->votes.size()))
+    while(currentCandidates[ballot->votes[ballot->index] - 1] == 0 && (ballot->index < ballot->votes.size() - 1))
     {
         ++(ballot->index);
     }
@@ -128,24 +130,30 @@ void find_next_candidate(Ballot* ballot)
 //This function takes an empty list of candidates and fills it with losers
 void handle_losers()
 {
+    //cout << "handle_losers" << endl;
     std::list<Candidate*> losers;
     unsigned int min = 1001; //More votes than any candidate will ever have
+
     for(Candidate* candidate : currentCandidates)
     {
-        unsigned int size = candidate->ballots.size();
-        
-        //TODO: adding candidates to this list and then erasing it seems slow. I bet we could do better!
-        if(size < min)
+        // We still have candidates in the array that have removed and set to null, we don't want to do anything with those...
+        if(candidate != 0)
         {
-            //If candidate has the least votes so far, empty the list of tied candidates, store the new
-            //lowest amount of votes, and then add them to the list.
-            min = size;
-            losers.erase(losers.begin(), losers.end());
-        }
-        if (size == min)
-        {
-            //If this is a tie for the least amount of votes, add the new candidate to the list of losers.
-            losers.push_back(candidate);
+            unsigned int size = candidate->ballots.size();
+            
+            //TODO: adding candidates to this list and then erasing it seems slow. I bet we could do better!
+            if(size < min)
+            {
+                //If candidate has the least votes so far, empty the list of tied candidates, store the new
+                //lowest amount of votes, and then add them to the list.
+                min = size;
+                losers.erase(losers.begin(), losers.end());
+            }
+            if (size == min)
+            {
+                //If this is a tie for the least amount of votes, add the new candidate to the list of losers.
+                losers.push_back(candidate);
+            }
         }
     }
     
@@ -172,23 +180,47 @@ void handle_losers()
 //Checks to see if there is a winner. If there is a winner, we return it. If not, we return a null pointer.
 Candidate* check_for_winner()
 {
+    //cout << "check_for_winner" << endl;
     for(unsigned int i = 0; i < currentCandidates.size(); i++)
     {
         if(currentCandidates[i] != 0)
+        {
+            //cout << currentCandidates[i]->name << " " << currentCandidates[i]->ballots.size() << endl;
             if(currentCandidates[i]->ballots.size() > numVotes / 2 + 1)
                 return currentCandidates[i];
+        }
     }
     return 0;
 }
 
-//TODO: memory management stuff for the remaining candidates when the election ends.
+//memory management stuff for the remaining candidates when the election ends.
 void clean_candidates()
 {
+    
+    for(Candidate* candidate : currentCandidates)
+    {
+        int i =0, j=0;
+        if(candidate != 0)
+        {
+            //cout << candidate->name << endl;
+            while(!candidate->ballots.empty())
+            {
+                delete candidate->ballots.front();
+                candidate->ballots.pop_front();
+            }
+
+            currentCandidates[i] = 0;
+            delete candidate;
+            i++;
+        }
+    }
+    currentCandidates.clear();
 }
 
 //This is the function that handles the logic loop of running the election.
 void process_election(int numCandidates)
 {
+    //cout << "process_election" << endl;
     for(unsigned int i = 0; i < currentCandidates.size(); i++)
     {
         Candidate* winner = check_for_winner();
@@ -212,18 +244,21 @@ void Australian_solve(std::istream& r, std::ostream& w)
     //Read the number of election cycles to run
     int numElections;
     r >> numElections;
+    //get rid of one newline here
+    r.get();
     
     for(int i = 0; i < numElections; i++)
     {
        std::string s;
-       //We want to ignore the two newlines
-       r.get();
+       //We want to ignore the one newline
        r.get();
 
        int numCandidates = process_candidates(r);
        process_ballots(r, numCandidates);
        
-       //process_election(numCandidates);
+       process_election(numCandidates);
+
+       clean_candidates();
     }
 }
 
