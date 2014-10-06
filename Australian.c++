@@ -54,7 +54,8 @@ int process_candidates(std::istream& r)
     //cout << "process_candidates" << endl;
     int i;
     r >> i;
-    r.get(); //Throw away newline after int
+    string junk;
+    getline(r, junk); //Throw away newline after int
     //cout << "num cadidates: " << i << endl;
     if (!r) return 0;
     for(int j = 0; j < i; j++)
@@ -97,6 +98,8 @@ void process_ballots(std::istream& r, int candidates)
         {
             int k;
             r >> k;
+                if(!r)
+                    return;
             ballot->votes.push_back(k);
             //cout << k << " ";
         }
@@ -107,7 +110,8 @@ void process_ballots(std::istream& r, int candidates)
         currentCandidates[pick]->ballots.push_back(ballot);
         //cout << currentCandidates[pick]->name << endl;
         
-        r.get();
+        string junk;
+        getline(r, junk); // get the rest of the line
     }
     //cout << numVotes << endl;
 }
@@ -199,7 +203,10 @@ list<Candidate*> check_for_winner()
                 return winners;
             }
             if(vote > max)
+            {
                 max = vote;
+                winners.clear();
+            }
             if(vote == max)
                 winners.push_back(currentCandidates[i]);
         }
@@ -265,13 +272,14 @@ void Australian_solve(std::istream& r, std::ostream& w)
     int numElections;
     r >> numElections;
     //get rid of one newline here
-    r.get();
+    string junk;
+    getline(r, junk);
     
     for(int i = 0; i < numElections; i++)
     {
        std::string s;
        //We want to ignore the one newline
-       r.get();
+       getline(r, junk);
 
        int numCandidates = process_candidates(r);
        candidatesLeft = numCandidates;
