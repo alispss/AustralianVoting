@@ -213,10 +213,10 @@ list<Candidate*> check_for_winner()
 //memory management stuff for the remaining candidates when the election ends.
 void clean_candidates()
 {
-    
+    int i =0;
     for(Candidate* candidate : currentCandidates)
     {
-        int i =0, j=0;
+        
         if(candidate != 0)
         {
             //cout << candidate->name << endl;
@@ -228,8 +228,9 @@ void clean_candidates()
 
             currentCandidates[i] = 0;
             delete candidate;
-            i++;
+
         }
+        i++;
     }
     currentCandidates.clear();
 }
@@ -248,7 +249,6 @@ void process_election(int numCandidates)
             {
                 std::cout << winner->name << std::endl;
             }
-            clean_candidates();
             return;
         }
         
