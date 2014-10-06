@@ -45,6 +45,9 @@ std::vector<Candidate*> currentCandidates;
 //The total number of votes cast. Yeah, I know, but this is an easy place to keep it.
 unsigned int numVotes;
 
+//Candidates left in the running
+unsigned int candidatesLeft;
+
 //This function processes the input from the istream and creates the Candidate objects
 int process_candidates(std::istream& r)
 {
@@ -163,6 +166,7 @@ void handle_losers()
         //This line is setting the pointer to this object in the list of all candidates equal to 0.
         //This is how ballots will tell if they can add themselves to a new candidate.
         currentCandidates[candidate->candidateNo] = 0;
+        --candidatesLeft;
     }
     
     //This loop makes every ballot for ever loser move itself to a valid candidate.
@@ -178,19 +182,32 @@ void handle_losers()
 }
 
 //Checks to see if there is a winner. If there is a winner, we return it. If not, we return a null pointer.
-Candidate* check_for_winner()
+list<Candidate*> check_for_winner()
 {
     //cout << "check_for_winner" << endl;
+    list<Candidate*> winners;
+    unsigned int max = 0;
     for(unsigned int i = 0; i < currentCandidates.size(); i++)
     {
         if(currentCandidates[i] != 0)
         {
+            unsigned int vote = currentCandidates[i]->ballots.size();
             //cout << currentCandidates[i]->name << " " << currentCandidates[i]->ballots.size() << endl;
-            if(currentCandidates[i]->ballots.size() > numVotes / 2 + 1)
-                return currentCandidates[i];
+            if(vote > numVotes / 2 + 1)
+            {
+                winners.push_back(currentCandidates[i]);
+                return winners;
+            }
+            if(vote > max)
+                max = vote;
+            if(vote == max)
+                winners.push_back(currentCandidates[i]);
         }
     }
-    return 0;
+    if(winners.size() != candidatesLeft)
+        winners.clear();
+
+    return winners;
 }
 
 //memory management stuff for the remaining candidates when the election ends.
@@ -223,11 +240,14 @@ void process_election(int numCandidates)
     //cout << "process_election" << endl;
     for(unsigned int i = 0; i < currentCandidates.size(); i++)
     {
-        Candidate* winner = check_for_winner();
-        if (winner != 0)
+        list<Candidate*> winners = check_for_winner();
+        if (winners.size() != 0)
         {
-            //Print the name of the winning candidate, followed by an empty line. TODO make sure this is right!
-            std::cout << winner->name << "\n" << std::endl;
+            //Print the name of the winning candidate, followed by an empty line.
+            for(Candidate* winner : winners)
+            {
+                std::cout << winner->name << std::endl;
+            }
             clean_candidates();
             return;
         }
@@ -254,15 +274,19 @@ void Australian_solve(std::istream& r, std::ostream& w)
        r.get();
 
        int numCandidates = process_candidates(r);
+       candidatesLeft = numCandidates;
        process_ballots(r, numCandidates);
-       
+
+       //An empty space between all testcases, this is my lazy way of figuring out how to do it
+       if(i != 0)
+            w << endl;
+
        process_election(numCandidates);
 
        clean_candidates();
     }
 }
 
-//TODO: Make this actually call the function so we can, you know, try it.
 int main()
 {
     Australian_solve(cin, cout);
