@@ -199,6 +199,7 @@ list<Candidate*> check_for_winner()
             //cout << currentCandidates[i]->name << " " << currentCandidates[i]->ballots.size() << endl;
             if(vote > numVotes / 2 + 1)
             {
+                winners.clear();
                 winners.push_back(currentCandidates[i]);
                 return winners;
             }
